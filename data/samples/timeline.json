@@ -1,0 +1,81 @@
+[
+  {
+    "confidence": 0.75,
+    "stress": 0.15,
+    "engagement": 0.65,
+    "dominant_signal": "Composed Neutrality",
+    "key_observations": [
+      "The spine is largely upright (7.29 degrees tilt), indicating a stable and non-slouching posture.",
+      "Shoulders are notably symmetrical (0.002) and exhibit low elevation (1.69), suggesting minimal physical tension or stress.",
+      "The head is centered (-0.066 tilt), aligning with a focused or neutral demeanor.",
+      "The dominant facial emotion is strongly neutral (99.49%), consistent with the overall composed posture.",
+      "A slight lean back (-0.066 forward_lean) combined with low arm openness (-0.578) and low wrist height (-0.477) suggests a contained or reserved body posture, possibly for comfort or observation."
+    ],
+    "recommendation": "The subject displays a highly composed and attentive demeanor, ideal for listening or processing information. To encourage more active participation or expressiveness, subtle cues like open-ended questions or creating a more relaxed environment might prompt more expansive gestures, though the current state indicates a high degree of presence.",
+    "timestamp": 0.0,
+    "no_person": false
+  },
+  {
+    "confidence": 0.65,
+    "stress": 0.5,
+    "engagement": 0.7,
+    "dominant_signal": "elevated shoulders indicating tension",
+    "key_observations": [
+      "Upright and centered posture with a direct gaze, suggesting attentiveness.",
+      "Slightly elevated shoulders, which is a key indicator of underlying tension or mild stress.",
+      "Arm posture appears contained with hands resting low, suggesting a self-contained or less expressive stance.",
+      "The facial expression is predominantly neutral, with a slightly open mouth, possibly indicating readiness to speak or listen.",
+      "Overall body language indicates a state of moderate engagement with subtle signs of physical tension."
+    ],
+    "recommendation": "Encourage physical relaxation techniques, especially focusing on lowering and relaxing the shoulders, to reduce subtle tension. Consider promoting more open arm and hand gestures to enhance expressions of openness and engagement.",
+    "timestamp": 2.0,
+    "no_person": false
+  },
+  {
+    "confidence": 0.3,
+    "stress": 0.75,
+    "engagement": 0.4,
+    "dominant_signal": "stress",
+    "key_observations": [
+      "Significantly elevated shoulders indicate considerable physical tension or stress.",
+      "A closed posture, characterized by tucked arms and low-resting hands, suggests a reserved or defensive demeanor.",
+      "The slight backward lean combined with the closed arm posture implies moderate to lower engagement.",
+      "The facial expression is predominantly neutral, masking overt emotional displays despite the physical tension.",
+      "The spine is relatively upright, but other postural cues suggest underlying discomfort."
+    ],
+    "recommendation": "Address the high shoulder elevation to alleviate physical tension, which may improve overall comfort. Encourage more open arm gestures and a slight forward lean to foster a greater sense of confidence and engagement.",
+    "timestamp": 3.9,
+    "no_person": false
+  },
+  {
+    "confidence": 0.6,
+    "stress": 0.7,
+    "engagement": 0.55,
+    "dominant_signal": "elevated shoulders indicating subtle tension",
+    "key_observations": [
+      "The subject maintains an upright posture with a spine tilt of 5.29 degrees and a centered head, indicating composure.",
+      "Facial emotion analysis shows a dominant neutral expression (99.05%), suggesting an absence of overt emotional display.",
+      "Shoulder elevation is relatively high (1.595), which is a significant indicator of underlying subtle stress or tension.",
+      "Shoulders are notably symmetrical (0.009), suggesting no significant postural imbalance.",
+      "Arm openness is negative (-0.559) and average wrist height is low (-0.464), suggesting arms are held close to the body or resting low, which can be a contained or less expressive posture."
+    ],
+    "recommendation": "While maintaining a composed outward appearance, the elevated shoulders suggest subtle tension. Encourage techniques for shoulder relaxation and an awareness of posture to alleviate potential underlying stress.",
+    "timestamp": 5.9,
+    "no_person": false
+  },
+  {
+    "confidence": 0.65,
+    "stress": 0.7,
+    "engagement": 0.7,
+    "dominant_signal": "Elevated shoulders indicating tension",
+    "key_observations": [
+      "The subject maintains a largely upright spine (4.77 degrees) and direct gaze, suggesting alertness.",
+      "Significantly elevated shoulders (1.646) are the primary indicator of underlying tension or stress.",
+      "The facial expression is predominantly neutral, potentially masking internal tension.",
+      "Arms are kept close to the body with low wrist height, suggesting a somewhat reserved or less demonstrative posture."
+    ],
+    "recommendation": "Address the elevated shoulder posture, which suggests significant tension. Encourage methods for relaxation and mindfulness to alleviate physical stress, potentially leading to improved comfort and reduced muscular strain.",
+    "timestamp": 7.9,
+    "no_person": false
+  }
+]
