@@ -25,8 +25,7 @@ venv/
 yolo-env/
 
 # Generated outputs
-data/samples/timeline.json
-data/samples/timeline_chart.png
+data/samples
 *.cache
 notebooks
 data/annotated
