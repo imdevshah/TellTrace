@@ -1,3 +1,33 @@
+# .env
+# yolo-env/
+# __pycache__/
+
+# Personal media — never commit
+data/samples/*.jpg
+data/samples/*.jpeg
+data/samples/*.png
+data/samples/*.mp4
+data/samples/frames/
+data/uploads/
+
+# Model weights — large files, keep out of git
+models/weights/*.pt
+models/weights/*.onnx
+models/exports/
+
+# Secrets
 .env
-yolo-env/
+
+# Python
 __pycache__/
+*.pyc
+venv/
+yolo-env/
+
+# Generated outputs
+data/samples/timeline.json
+data/samples/timeline_chart.png
+*.cache
+notebooks
+data/annotated
+tests

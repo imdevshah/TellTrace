@@ -1,382 +1,417 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>TellTrace — Body Language Reader</title>
-  <style>
-    /* ─────────────────────────────────────
-       WHY basic CSS reset + system font?
-       Keeps things simple and clean without
-       needing a CSS framework. system-ui uses
-       whatever font your OS already has.
-       ───────────────────────────────────── */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f5f5f5;
-      color: #222;
-      padding: 2rem;
-    }
-    .container {
-      max-width: 700px;
-      margin: 0 auto;
-    }
-    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-    .subtitle { color: #666; margin-bottom: 1.5rem; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TellTrace — Body Language Reader</title>
+    <style>
+        /*
+           WHY these base styles?
+           A clean, centered layout with a max
+           width keeps content readable on any
+           screen size. Sans-serif font and muted
+           colors give it a simple, professional
+           look without needing a CSS framework. */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f4;
+            color: #2c2c2a;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: #5f5e5a;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
 
-    /* ─────────────────────────────────────
-       WHY a "card" pattern?
-       Reusable white box with padding and
-       rounded corners — used for the upload
-       area AND the results area, so the page
-       has a consistent visual rhythm.
-       ───────────────────────────────────── */
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
+        /* 
+           WHY a card style for the upload area?
+           Visually groups the upload controls
+           together, separate from the results
+           that appear below. White background
+           with a light border = simple "card".
+           */
+        .card {
+            background: white;
+            border: 1px solid #d3d1c7;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
 
-    input[type="file"] { margin-bottom: 1rem; display: block; }
+        input[type="file"] {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
 
-    button {
-      background: #1D9E75;
-      color: white;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.95rem;
-    }
-    button:disabled { background: #ccc; cursor: not-allowed; }
+        button {
+            background: #2c2c2a;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        button:hover { background: #444441; }
+        button:disabled {
+            background: #b4b2a9;
+            cursor: not-allowed;
+        }
 
-    /* ─────────────────────────────────────
-       WHY .bar / .bar-fill?
-       Reuses the same "progress bar" visual
-       from your terminal output (████░░░░),
-       but as an actual HTML/CSS element.
-       ───────────────────────────────────── */
-    .signal-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
-    .signal-label { width: 90px; font-size: 0.9rem; color: #555; }
-    .bar { flex: 1; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 4px; }
-    .signal-value { width: 40px; text-align: right; font-size: 0.9rem; font-weight: 600; }
+        /* 
+           WHY a separate style for the loading
+           message?
+           Video analysis takes 30+ seconds. Users
+           need clear feedback that something is
+           happening — otherwise they think it's
+           broken and refresh, losing the request.
+            */
+        .loading {
+            color: #854F0B;
+            font-size: 0.9rem;
+            display: none;
+        }
 
-    .observations { margin-top: 1rem; }
-    .observations li { margin-bottom: 0.4rem; font-size: 0.9rem; line-height: 1.4; }
+        /* 
+           WHY bar styles using CSS variables?
+           Each signal bar's WIDTH is set dynamically
+           via JavaScript (--pct custom property).
+           The bar itself is just a div with a
+           colored inner div whose width = --pct.
+           */
+        .signal-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .signal-label {
+            width: 90px;
+            font-size: 0.85rem;
+            color: #5f5e5a;
+        }
+        .signal-bar-track {
+            flex: 1;
+            height: 8px;
+            background: #e5e3da;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .signal-bar-fill {
+            height: 100%;
+            width: var(--pct, 0%);
+            border-radius: 4px;
+        }
+        .signal-value {
+            width: 36px;
+            text-align: right;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
 
-    .recommendation {
-      margin-top: 1rem;
-      padding: 0.8rem;
-      background: #f0f9f6;
-      border-left: 3px solid #1D9E75;
-      font-size: 0.9rem;
-      border-radius: 0 6px 6px 0;
-    }
+        .observations {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .observations ul {
+            margin-left: 1.2rem;
+            margin-top: 0.4rem;
+        }
+        .recommendation {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: #E6F1FB;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #0C447C;
+        }
 
-    .loading { color: #888; font-style: italic; }
-    .error { color: #c0392b; }
+        #results { display: none; }
 
-    /* ─────────────────────────────────────
-       WHY hidden by default?
-       The results card shouldn't appear until
-       we actually HAVE results. JS removes
-       this class after a successful response.
-       ───────────────────────────────────── */
-    .hidden { display: none; }
-  </style>
+        /*
+           WHY a table for video timeline?
+           Each row = one sampled frame's results.
+           A table is the clearest way to show
+           multiple rows of timestamp + 3 scores.
+            */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        th, td {
+            text-align: left;
+            padding: 0.4rem 0.5rem;
+            border-bottom: 1px solid #e5e3da;
+        }
+        th { color: #5f5e5a; font-weight: 500; }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>TellTrace</h1>
-    <p class="subtitle">AI-powered body language reader</p>
+    <div class="container">
+        <h1>TellTrace</h1>
+        <p class="subtitle">AI-powered body language reader — upload an image or short video</p>
 
-    <!-- ─────────────────────────────────────
-         WHY a <form> with id="upload-form"?
-         JS will listen for this form's submit
-         event, prevent the default page reload,
-         and send the file via fetch() instead.
-         ───────────────────────────────────── -->
-    <div class="card">
-      <form id="upload-form">
-        <input type="file" id="file-input" accept="image/*,video/*" required />
-        <button type="submit" id="submit-btn">Analyse</button>
-      </form>
-      <p id="status" class="loading hidden"></p>
+        <!-- 
+             WHY two separate forms?
+             Image and video go to DIFFERENT API
+             endpoints (/analyse-image vs
+             /analyse-video). Two forms with two
+             buttons makes it explicit to the user
+             which type of analysis they're starting.
+              -->
+        <div class="card">
+            <strong>Analyse an image</strong>
+            <input type="file" id="imageInput" accept="image/*">
+            <button onclick="analyseImage()">Analyse image</button>
+            <p class="loading" id="imageLoading">Analysing image...</p>
+        </div>
+
+        <div class="card">
+            <strong>Analyse a video</strong>
+            <input type="file" id="videoInput" accept="video/*">
+            <button onclick="analyseVideo()">Analyse video</button>
+            <p class="loading" id="videoLoading">
+                Analysing video — this samples frames every 2 seconds
+                and may take 30-60 seconds for short clips...
+            </p>
+        </div>
+
+        <!-- 
+             WHY one results container for both?
+             Whether I analysed an image or video,
+             results render into the SAME div. The
+             JS functions decide what HTML to put
+             inside based on which type of response
+             came back.
+              -->
+        <div class="card" id="results"></div>
     </div>
 
-    <!-- ─────────────────────────────────────
-         WHY hidden initially?
-         This card holds the results. It's empty
-         and hidden until JS fills it in and
-         removes the "hidden" class.
-         ───────────────────────────────────── -->
-    <div class="card hidden" id="results-card">
-      <h2 id="dominant-signal" style="margin-bottom: 1rem;"></h2>
+    <script>
+        // 
+        // WHY a constant for the API base URL?
+        // If I ever deploy this somewhere else
+        // (not localhost), I have to change ONE line
+        // instead of every fetch() call.
+        // 
+        const API_BASE = "http://127.0.0.1:8000";
 
-      <div id="signals"></div>
-
-      <ul class="observations" id="observations"></ul>
-
-      <div class="recommendation" id="recommendation"></div>
-    </div>
-  </div>
-
-  <script>
-    // ─────────────────────────────────────────
-    // WHY grab these elements once at the top?
-    // document.getElementById() is a bit slow to
-    // call repeatedly. Grabbing references once
-    // and reusing them is standard practice and
-    // keeps the code below readable.
-    // ─────────────────────────────────────────
-    const form = document.getElementById('upload-form');
-    const fileInput = document.getElementById('file-input');
-    const submitBtn = document.getElementById('submit-btn');
-    const status = document.getElementById('status');
-    const resultsCard = document.getElementById('results-card');
-    const dominantSignalEl = document.getElementById('dominant-signal');
-    const signalsEl = document.getElementById('signals');
-    const observationsEl = document.getElementById('observations');
-    const recommendationEl = document.getElementById('recommendation');
-
-    // ─────────────────────────────────────────
-    // WHY addEventListener('submit', ...)?
-    // This runs whenever the user clicks "Analyse"
-    // (which submits the form). 'async' lets us
-    // use 'await' inside for the fetch() call.
-    // ─────────────────────────────────────────
-    form.addEventListener('submit', async (e) => {
-      // ─────────────────────────────────────
-      // WHY e.preventDefault()?
-      // By default, submitting a form reloads
-      // the whole page (old-school behaviour).
-      // We want to send the file via JS instead
-      // and stay on the same page — preventDefault()
-      // stops the reload.
-      // ─────────────────────────────────────
-      e.preventDefault();
-
-      const file = fileInput.files[0];
-      if (!file) return;
-
-      // ─────────────────────────────────────
-      // WHY check file.type?
-      // The backend has TWO endpoints:
-      // /analyse-image and /analyse-video.
-      // We check the file's MIME type (e.g.
-      // "image/jpeg" or "video/mp4") to decide
-      // which endpoint to call.
-      // ─────────────────────────────────────
-      const isVideo = file.type.startsWith('video/');
-      const endpoint = isVideo ? '/analyse-video' : '/analyse-image';
-
-      // ─────────────────────────────────────
-      // WHY FormData?
-      // fetch() can't send a raw File object
-      // directly as JSON — files need to be sent
-      // as "multipart/form-data", which is exactly
-      // what FastAPI's UploadFile expects on the
-      // other end. FormData handles this encoding
-      // automatically.
-      // ─────────────────────────────────────
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // ─────────────────────────────────────
-      // WHY disable the button + show status?
-      // Video analysis can take 30-60+ seconds
-      // (remember the 4s sleep per frame).
-      // Disabling the button prevents double
-      // submissions; the status message tells
-      // the user something is happening.
-      // ─────────────────────────────────────
-      submitBtn.disabled = true;
-      status.textContent = isVideo
-        ? 'Analysing video... this may take a minute.'
-        : 'Analysing image...';
-      status.classList.remove('hidden', 'error');
-      resultsCard.classList.add('hidden');
-
-      try {
-        // ─────────────────────────────────
-        // WHY fetch(endpoint, { method: 'POST', body: formData })?
-        // This sends an HTTP POST request to
-        // your FastAPI backend with the file
-        // attached. FastAPI's UploadFile = File(...)
-        // on the other end receives this exact
-        // payload.
-        // ─────────────────────────────────
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          body: formData,
-        });
-
-        // ─────────────────────────────────
-        // WHY response.json()?
-        // Converts the raw HTTP response body
-        // (text) into a JavaScript object —
-        // same shape as the JSON you saw in
-        // the /docs page.
-        // ─────────────────────────────────
-        const data = await response.json();
-
-        if (data.error) {
-          throw new Error(data.error);
+        // 
+        // WHY a helper function for signal bars?
+        // Both image and video results show
+        // confidence/stress/engagement bars.
+        // Writing this once and reusing it avoids
+        // duplicating the same HTML-building code
+        // in two places.
+        //
+        // WHY these specific colors?
+        // Green = confidence (positive), coral =
+        // stress (negative), blue = engagement
+        // (neutral/informational) — matches the
+        // chart colors from my matplotlib
+        // visualisation for visual consistency.
+        // 
+        function signalBar(label, value, color) {
+            const pct = Math.round(value * 100);
+            return `
+                <div class="signal-row">
+                    <span class="signal-label">${label}</span>
+                    <div class="signal-bar-track">
+                        <div class="signal-bar-fill" style="--pct: ${pct}%; background: ${color};"></div>
+                    </div>
+                    <span class="signal-value">${value.toFixed(2)}</span>
+                </div>
+            `;
         }
 
-        if (isVideo) {
-          displayTimeline(data.timeline);
-        } else {
-          displayImageResult(data);
+        //
+        // WHY async function + try/catch?
+        // fetch() is asynchronous — the response
+        // takes time to arrive. 'await' pauses this
+        // function until the response is ready.
+        // try/catch handles network errors (server
+        // not running, no internet) without crashing
+        // the whole page.
+        // 
+        async function analyseImage() {
+            const fileInput = document.getElementById("imageInput");
+            const loading = document.getElementById("imageLoading");
+            const results = document.getElementById("results");
+
+            if (!fileInput.files[0]) {
+                alert("Please choose an image first");
+                return;
+            }
+
+            // 
+            // WHY FormData?
+            // File uploads over HTTP use a special
+            // format called "multipart/form-data".
+            // FormData is the browser's built-in
+            // way to build this format — I can't
+            // just send a file as JSON.
+            // 
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            loading.style.display = "block";
+            results.style.display = "none";
+
+            try {
+                const response = await fetch(`${API_BASE}/analyse-image`, {
+                    method: "POST",
+                    body: formData,
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    results.innerHTML = `<p>${data.error}</p>`;
+                } else {
+                    renderImageResult(data);
+                }
+
+                results.style.display = "block";
+            } catch (err) {
+                results.innerHTML = `<p>Error connecting to API: ${err.message}</p>`;
+                results.style.display = "block";
+            } finally {
+                loading.style.display = "none";
+            }
         }
 
-        status.classList.add('hidden');
+        // 
+        // WHY a separate render function?
+        // Keeps "fetching data" (analyseImage)
+        // separate from "building HTML from data"
+        // (renderImageResult) — same separation
+        // pattern I used in classifier.py
+        // (analyse vs print_report).
+        //
+        function renderImageResult(data) {
+            const a = data.analysis;
+            const results = document.getElementById("results");
 
-      } catch (err) {
-        // ─────────────────────────────────
-        // WHY catch errors here?
-        // Network failures, server errors, or
-        // "no person detected" all land here.
-        // Showing the error message in the UI
-        // (instead of just console.log) means
-        // the USER sees what went wrong, not
-        // just developers checking devtools.
-        // ─────────────────────────────────
-        status.textContent = 'Error: ' + err.message;
-        status.classList.add('error');
-        status.classList.remove('hidden');
-      } finally {
-        // ─────────────────────────────────
-        // WHY finally?
-        // This runs whether the request
-        // succeeded OR failed. Re-enabling the
-        // button means the user can try again
-        // either way.
-        // ─────────────────────────────────
-        submitBtn.disabled = false;
-      }
-    });
+            // 
+            // WHY .map().join('')?
+            // a.key_observations is an array of
+            // strings. We turn each string into
+            // an <li> element, then join them all
+            // into one block of HTML to insert.
+            // 
+            const observationsList = a.key_observations
+                .map(obs => `<li>${obs}</li>`)
+                .join("");
 
-    // ─────────────────────────────────────────
-    // WHY a separate function for displaying results?
-    // Keeps "fetching data" (above) separate from
-    // "rendering data" (below) — same separation
-    // of concerns pattern from your Python code
-    // (analyse() vs print_report()).
-    // ─────────────────────────────────────────
-    function displayImageResult(data) {
-      const analysis = data.analysis;
+            results.innerHTML = `
+                <h3>${a.dominant_signal}</h3>
+                ${signalBar("Confidence", a.confidence, "#1D9E75")}
+                ${signalBar("Stress", a.stress, "#D85A30")}
+                ${signalBar("Engagement", a.engagement, "#378ADD")}
 
-      dominantSignalEl.textContent = analysis.dominant_signal;
+                <div class="observations">
+                    <strong>Key observations</strong>
+                    <ul>${observationsList}</ul>
+                </div>
 
-      // ─────────────────────────────────────
-      // WHY rebuild signalsEl.innerHTML each time?
-      // If the user analyses multiple images,
-      // we don't want old results stacking up.
-      // Clearing innerHTML = '' first, then
-      // rebuilding, ensures only the LATEST
-      // result is shown.
-      // ─────────────────────────────────────
-      signalsEl.innerHTML = '';
-      renderSignalBar('Confidence', analysis.confidence, '#1D9E75');
-      renderSignalBar('Stress', analysis.stress, '#D85A30');
-      renderSignalBar('Engagement', analysis.engagement, '#378ADD');
+                <div class="recommendation">
+                    <strong>Recommendation:</strong> ${a.recommendation}
+                </div>
+            `;
+        }
 
-      observationsEl.innerHTML = '';
-      analysis.key_observations.forEach(obs => {
-        const li = document.createElement('li');
-        li.textContent = obs;
-        observationsEl.appendChild(li);
-      });
+        async function analyseVideo() {
+            const fileInput = document.getElementById("videoInput");
+            const loading = document.getElementById("videoLoading");
+            const results = document.getElementById("results");
 
-      recommendationEl.textContent = analysis.recommendation;
+            if (!fileInput.files[0]) {
+                alert("Please choose a video first");
+                return;
+            }
 
-      resultsCard.classList.remove('hidden');
-    }
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
 
-    // ─────────────────────────────────────────
-    // WHY a reusable renderSignalBar function?
-    // Confidence, Stress, and Engagement all
-    // render IDENTICALLY — same bar shape, just
-    // different label/value/color. One function,
-    // called 3 times, instead of copy-pasting
-    // the same HTML-building code 3 times.
-    // ─────────────────────────────────────────
-    function renderSignalBar(label, value, color) {
-      // ─────────────────────────────────────
-      // WHY Math.round(value * 100)?
-      // value is 0.0-1.0 (e.g. 0.73). Multiplying
-      // by 100 and rounding gives a whole number
-      // percentage (73) — both for the bar WIDTH
-      // (CSS percentages) and the displayed number.
-      // ─────────────────────────────────────
-      const pct = Math.round(value * 100);
+            loading.style.display = "block";
+            results.style.display = "none";
 
-      const row = document.createElement('div');
-      row.className = 'signal-row';
-      row.innerHTML = `
-        <span class="signal-label">${label}</span>
-        <div class="bar"><div class="bar-fill" style="width:${pct}%; background:${color}"></div></div>
-        <span class="signal-value">${value.toFixed(2)}</span>
-      `;
-      signalsEl.appendChild(row);
-    }
+            try {
+                const response = await fetch(`${API_BASE}/analyse-video`, {
+                    method: "POST",
+                    body: formData,
+                });
+                const data = await response.json();
+                renderVideoResult(data);
+                results.style.display = "block";
+            } catch (err) {
+                results.innerHTML = `<p>Error connecting to API: ${err.message}</p>`;
+                results.style.display = "block";
+            } finally {
+                loading.style.display = "none";
+            }
+        }
 
-    // ─────────────────────────────────────────
-    // WHY a separate function for video?
-    // Video returns a TIMELINE (array of results),
-    // not a single analysis. The display logic
-    // is different enough to warrant its own
-    // function rather than overloading
-    // displayImageResult().
-    // ─────────────────────────────────────────
-    function displayTimeline(timeline) {
-      dominantSignalEl.textContent = `Timeline (${timeline.length} frames)`;
+        function renderVideoResult(data) {
+            const results = document.getElementById("results");
 
-      signalsEl.innerHTML = '';
-      observationsEl.innerHTML = '';
+            // 
+            // WHY .map() to build table rows?
+            // data.timeline is an array of frame
+            // results (same structure as
+            // timeline.json from process.py).
+            // Each entry becomes one <tr> row.
+            // 
+            const rows = data.timeline.map(entry => {
+                if (entry.no_person) {
+                    return `
+                        <tr>
+                            <td>${entry.timestamp}s</td>
+                            <td colspan="4">No person detected</td>
+                        </tr>
+                    `;
+                }
+                return `
+                    <tr>
+                        <td>${entry.timestamp}s</td>
+                        <td>${entry.confidence.toFixed(2)}</td>
+                        <td>${entry.stress.toFixed(2)}</td>
+                        <td>${entry.engagement.toFixed(2)}</td>
+                        <td>${entry.dominant_signal}</td>
+                    </tr>
+                `;
+            }).join("");
 
-      // ─────────────────────────────────────
-      // WHY filter out no_person frames here too?
-      // Same reasoning as visualise.py — frames
-      // with no_person:true don't have
-      // confidence/stress/engagement keys, so
-      // we skip them to avoid errors.
-      // ─────────────────────────────────────
-      const validFrames = timeline.filter(f => !f.no_person);
-
-      validFrames.forEach(frame => {
-        const row = document.createElement('li');
-        row.textContent =
-          `${frame.timestamp}s — confidence ${frame.confidence}, ` +
-          `stress ${frame.stress}, engagement ${frame.engagement} ` +
-          `(${frame.dominant_signal})`;
-        observationsEl.appendChild(row);
-      });
-
-      // ─────────────────────────────────────
-      // WHY average the values?
-      // Gives a quick "overall" summary bar at
-      // the top, even though the detailed
-      // per-frame data is listed below.
-      // reduce() sums all values, then we
-      // divide by count to get the average.
-      // ─────────────────────────────────────
-      const avg = (key) =>
-        validFrames.reduce((sum, f) => sum + f[key], 0) / validFrames.length;
-
-      renderSignalBar('Confidence', avg('confidence'), '#1D9E75');
-      renderSignalBar('Stress', avg('stress'), '#D85A30');
-      renderSignalBar('Engagement', avg('engagement'), '#378ADD');
-
-      recommendationEl.textContent =
-        'Showing average scores across all analysed frames. See individual frame results above.';
-
-      resultsCard.classList.remove('hidden');
-    }
-  </script>
+            results.innerHTML = `
+                <h3>Video timeline</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Confidence</th>
+                            <th>Stress</th>
+                            <th>Engagement</th>
+                            <th>Dominant signal</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+        }
+    </script>
 </body>
 </html>

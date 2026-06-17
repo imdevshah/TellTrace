@@ -1,0 +1,13 @@
+ultralytics==8.3.0
+opencv-python
+numpy
+matplotlib
+deepface
+google-genai
+python-dotenv
+Pillow
+fastapi
+uvicorn
+python-multipart
+torch
+torchvision

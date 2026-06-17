@@ -5,7 +5,7 @@ import os
 # Load pretrained YOLOv8 pose model (downloads ~22MB automatically)
 model = YOLO('yolov8n-pose.pt')
 
-# Path to your test image — put any photo of a person in data/samples/
+# Path to my test image — put any photo of a person in data/samples/
 IMAGE_PATH = 'data/samples/test.jpg'
 
 if not os.path.exists(IMAGE_PATH):
